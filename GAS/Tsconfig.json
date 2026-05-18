@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "target": "ES2019",
+    "lib": ["ES2019"],
+    "module": "None",
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "types": ["google-apps-script"]
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
+}
