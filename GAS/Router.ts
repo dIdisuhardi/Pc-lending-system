@@ -1,19 +1,15 @@
-// actionパラメータに応じて各ハンドラーに処理を振り分けるRouter
-// ハンドラーは Week2 3日目に実装予定（現在はスタブ）
-
 type HandlerFn = (
   e: GoogleAppsScript.Events.DoGet | GoogleAppsScript.Events.DoPost,
   client: SheetClient
 ) => GoogleAppsScript.Content.TextOutput
 
-// 実装済みになったハンドラーをここに追加していく
 const HANDLERS: Record<string, HandlerFn> = {
-  // getDropdowns,
-  // getPcList,
-  // getPcByno,
-  // getEmployees,
-  // updatePc,
-  // registerPc,
+  getDropdowns,
+  getPcList,
+  getPcByNo,
+  getEmployees,
+  updatePc,
+  registerPc,
 }
 
 const Router = {
@@ -22,20 +18,14 @@ const Router = {
     sheetId: string
   ): GoogleAppsScript.Content.TextOutput {
     let action: string | undefined
-
-    // GASのeventオブジェクトは 'in' 演算子が使えないため直接プロパティにアクセスする
-    // GASコンソールから手動実行した場合、eがundefinedになるためガードする
     if (!e) return errorResponse("不正なactionです")
 
     const doGetEvent = e as GoogleAppsScript.Events.DoGet
     const doPostEvent = e as GoogleAppsScript.Events.DoPost
-
-    // GETはクエリパラメータから取得
     if (doGetEvent.parameter && doGetEvent.parameter.action) {
       action = doGetEvent.parameter.action
     }
 
-    // POSTはリクエストボディから取得
     if (!action && doPostEvent.postData && doPostEvent.postData.contents) {
       try {
         const body = JSON.parse(doPostEvent.postData.contents)
