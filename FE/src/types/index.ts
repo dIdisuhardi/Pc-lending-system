@@ -17,7 +17,7 @@ export type PC = {
   製造社: string
   モデル名: string
   CPU: string
-  RAM: string
+  RAM: number
   購入日: string
   OS名: string
   OS_Licence: string
@@ -45,9 +45,3 @@ export type ApiResponse<T> = {
   data?: T
   message?: string
 }
-
-export const LENDING_CLASSIFICATIONS = [
-  "2現場貸出",
-  "5貸出(社内開発)",
-  "6貸出(現場)"
-]
