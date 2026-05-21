@@ -1,40 +1,28 @@
 import { useState, useEffect } from "react"
 import { gasApi } from "../api/gas"
 import { useAuth } from "./useAuth"
-import type { Dropdowns } from "../types/index"
+import type { Employee } from "../types/index"
 
-const EMPTY_DROPDOWNS: Dropdowns = {
-    status: [],
-    classification: [],
-    purpose: [],
-    type: [],
-    place: [],
-}
-
-// モジュールレベルキャッシュ
-let cache: Dropdowns | null = null
-let fetchPromise: Promise<Dropdowns> | null = null
-// キャッシュ更新を全インスタンスに通知するためのコールバックリスト
+let cache: Employee[] | null = null
+let fetchPromise: Promise<Employee[]> | null = null
 const listeners: Set<() => void> = new Set()
 
 const notify = () => listeners.forEach((fn) => fn())
 
-export function useDropdowns() {
+export function useEmployees() {
     const { isAuthenticated } = useAuth()
-    const [dropdowns, setDropdowns] = useState<Dropdowns>(cache ?? EMPTY_DROPDOWNS)
+    const [employees, setEmployees] = useState<Employee[]>(cache ?? [])
     const [loading, setLoading] = useState(!cache)
     const [error, setError] = useState<string>("")
 
-    // キャッシュが更新されたとき全インスタンスのstateを同期する
     useEffect(() => {
         const sync = () => {
             if (cache) {
-                setDropdowns(cache)
+                setEmployees(cache)
                 setLoading(false)
             }
         }
         listeners.add(sync)
-        // 既にキャッシュがある場合は即時同期
         sync()
         return () => { listeners.delete(sync) }
     }, [])
@@ -42,18 +30,18 @@ export function useDropdowns() {
     useEffect(() => {
         if (!isAuthenticated) return
         if (cache) {
-            setDropdowns(cache)
+            setEmployees(cache)
             setLoading(false)
             return
         }
         if (!fetchPromise) {
-            fetchPromise = gasApi.getDropdowns()
+            fetchPromise = gasApi.getEmployees()
         }
         setLoading(true)
         fetchPromise
             .then((data) => {
                 cache = data
-                notify() // 全インスタンスのstateを更新
+                notify()
             })
             .catch((e) => {
                 setError(e instanceof Error ? e.message : "Unknown error")
@@ -62,5 +50,5 @@ export function useDropdowns() {
             .finally(() => setLoading(false))
     }, [isAuthenticated])
 
-    return { dropdowns, loading, error }
+    return { employees, loading, error }
 }

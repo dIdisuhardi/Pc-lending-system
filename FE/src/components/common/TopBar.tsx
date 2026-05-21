@@ -68,7 +68,6 @@ export default function TopBar({
         ) : (
           <GoogleLogin
             onSuccess={(credentialResponse) => {
-              console.log("credential response:", credentialResponse);
               login(credentialResponse);
             }}
             onError={() => console.error("Google login failed")}

@@ -1,43 +1,42 @@
 export type PC = {
   no: number
-  番号: string
-  PC名: string
-  状況: string
-  分類: string
-  用途: string
-  区分: string
-  現在使用者: string
-  在退職: string
-  以前使用者: string
-  場所: string
-  状態: string
-  備考: string
-  貸出日: string
-  貸出証: string
-  製造社: string
-  モデル名: string
-  CPU: string
-  RAM: number
-  購入日: string
-  OS名: string
-  OS_Licence: string
-  バックアップイメージ作成日: string
-  Office_Licence: string
-  IP: string
+  PCNo: string //番号
+  PCName: string //PC名
+  status: string // 状況
+  classification: string // 分類
+  purpose: string //用途
+  type: string //区分
+  user: string // 現在使用者
+  employmentStatus: string //在/退職
+  prevUser: string //以前使用者
+  place: string //場所
+  state: string //状態
+  note: string //備考
+  lendingDate: string //貸出日
+  manufacture: string //製造社
+  modelName: string //モデル名
+  CPU: string //CPU
+  RAM: number //RAM
+  purchaseDate: string //購入日
+  OSName: string //OS名
+  OSLicence: string //OSライセンス
+  backupImageCreationDate: string //バックアップイメージ作成日
+  OfficeLicence: string //Officeライセンス
+  IP: string //IPアドレス
 }
 
 export type Employee = {
-  番号: number
-  名前: string
-  区分: string
+  employeeNo: number //番号
+  name: string // 名前
+  type: string // 区分
 }
 
 export type Dropdowns = {
-  状況: string[]
-  分類: string[]
-  用途: string[]
-  区分: string[]
-  場所: string[]
+  status: string[] // 状況
+  classification: string[] // 分類
+  purpose: string[] // 用途
+  type : string[] // 区分
+  place: string[] // 場所
 }
 
 export type ApiResponse<T> = {
