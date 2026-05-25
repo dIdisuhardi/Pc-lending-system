@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+
+import type { Dropdowns } from "../types/index"
 import { gasApi } from "../api/gas"
 import { useAuth } from "./useAuth"
-import type { Dropdowns } from "../types/index"
 
 const EMPTY_DROPDOWNS: Dropdowns = {
     status: [],
@@ -11,55 +12,47 @@ const EMPTY_DROPDOWNS: Dropdowns = {
     place: [],
 }
 
-// モジュールレベルキャッシュ
 let cache: Dropdowns | null = null
 let fetchPromise: Promise<Dropdowns> | null = null
-// キャッシュ更新を全インスタンスに通知するためのコールバックリスト
 const listeners: Set<() => void> = new Set()
 
 const notify = () => listeners.forEach((fn) => fn())
 
 export function useDropdowns() {
     const { isAuthenticated } = useAuth()
-    const [dropdowns, setDropdowns] = useState<Dropdowns>(cache ?? EMPTY_DROPDOWNS)
-    const [loading, setLoading] = useState(!cache)
+    const [dropdowns, setDropdowns] = useState<Dropdowns>(() => cache ?? EMPTY_DROPDOWNS)
+    const [loading, setLoading] = useState(() => !cache)
     const [error, setError] = useState<string>("")
-
-    // キャッシュが更新されたとき全インスタンスのstateを同期する
     useEffect(() => {
         const sync = () => {
-            if (cache) {
-                setDropdowns(cache)
-                setLoading(false)
-            }
+            if (cache) setDropdowns(cache)
         }
         listeners.add(sync)
-        // 既にキャッシュがある場合は即時同期
-        sync()
         return () => { listeners.delete(sync) }
     }, [])
 
     useEffect(() => {
-        if (!isAuthenticated) return
-        if (cache) {
-            setDropdowns(cache)
-            setLoading(false)
-            return
-        }
+        if (!isAuthenticated || cache) return
+
         if (!fetchPromise) {
             fetchPromise = gasApi.getDropdowns()
         }
-        setLoading(true)
+
+        let cancelled = false
         fetchPromise
             .then((data) => {
+                if (cancelled) return
                 cache = data
-                notify() // 全インスタンスのstateを更新
+                setLoading(false)
+                notify()
             })
             .catch((e) => {
+                if (cancelled) return
                 setError(e instanceof Error ? e.message : "Unknown error")
+                setLoading(false)
                 fetchPromise = null
             })
-            .finally(() => setLoading(false))
+        return () => { cancelled = true }
     }, [isAuthenticated])
 
     return { dropdowns, loading, error }

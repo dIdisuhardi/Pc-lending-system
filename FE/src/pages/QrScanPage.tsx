@@ -1,137 +1,147 @@
-import { useEffect, useRef, useState, useCallback } from "react"
-import { useNavigate } from "react-router-dom"
-import { useAuth } from "../hooks/useAuth"
-import { gasApi } from "../api/gas"
-import TopBar from "../components/common/TopBar"
-import ErrorDialog from "../components/common/ErrorDialog"
- 
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+
+import ErrorDialog from "../components/common/ErrorDialog";
+import TopBar from "../components/common/TopBar";
+import { gasApi } from "../api/gas";
+import { useAuth } from "../hooks/useAuth";
+
 export default function QrScanPage() {
-  const { isAuthenticated } = useAuth()
-  const navigate = useNavigate()
- 
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const streamRef = useRef<MediaStream | null>(null)
-  const rafRef = useRef<number>(0)
-  const scanningRef = useRef(false)
- 
-  const [error, setError] = useState<string>("")
-  const [scanning, setScanning] = useState(false)
- 
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number>(0);
+  const scanningRef = useRef(false);
+
+  const [error, setError] = useState<string>("");
+  const [scanning, setScanning] = useState(false);
+
   const stopCamera = useCallback(() => {
-    scanningRef.current = false
-    cancelAnimationFrame(rafRef.current)
-    streamRef.current?.getTracks().forEach((t) => t.stop())
-    streamRef.current = null
-    setScanning(false)
-  }, [])
- 
+    scanningRef.current = false;
+    cancelAnimationFrame(rafRef.current);
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    setScanning(false);
+  }, []);
+
   useEffect(() => {
-    if (!isAuthenticated) return
- 
-    let cancelled = false
- 
+    if (!isAuthenticated) return;
+
+    let cancelled = false;
+
     const startCamera = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "environment" },
-        })
+        });
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop())
-          return
+          stream.getTracks().forEach((t) => t.stop());
+          return;
         }
-        streamRef.current = stream
+        streamRef.current = stream;
         if (videoRef.current) {
-          videoRef.current.srcObject = stream
-          await videoRef.current.play()
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
         }
-        startScanLoop()
+        startScanLoop();
       } catch {
-        setError("カメラへのアクセスを許可してください。")
+        setError("カメラへのアクセスを許可してください。");
       }
-    }
- 
+    };
+
     const startScanLoop = () => {
-      scanningRef.current = true
-      setScanning(true)
- 
-      const detectedRef = { current: false }
- 
+      scanningRef.current = true;
+      setScanning(true);
+
+      const detectedRef = { current: false };
+
       const scan = async () => {
-        if (cancelled || !scanningRef.current || detectedRef.current) return
+        if (cancelled || !scanningRef.current || detectedRef.current) return;
         if (!videoRef.current || !canvasRef.current) {
-          rafRef.current = requestAnimationFrame(scan)
-          return
+          rafRef.current = requestAnimationFrame(scan);
+          return;
         }
-        const video = videoRef.current
-        const canvas = canvasRef.current
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
         if (video.readyState < video.HAVE_ENOUGH_DATA) {
-          rafRef.current = requestAnimationFrame(scan)
-          return
+          rafRef.current = requestAnimationFrame(scan);
+          return;
         }
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        const ctx = canvas.getContext("2d")
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
         if (!ctx) {
-          rafRef.current = requestAnimationFrame(scan)
-          return
+          rafRef.current = requestAnimationFrame(scan);
+          return;
         }
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         try {
-          const { default: decodeQR } = await import("qr/decode.js")
+          const { default: decodeQR } = await import("qr/decode.js");
           const result = decodeQR({
             height: imageData.height,
             width: imageData.width,
             data: imageData.data,
-          })
+          });
           if (result) {
-            detectedRef.current = true  // 重複検出・重複APIコールを防ぐ
-            stopCamera()
-            const pc = await gasApi.getPcByNo(result)
+            detectedRef.current = true;
+            stopCamera();
+            const pc = await gasApi.getPcByNo(result);
             if (!pc) {
-              setError(`QRコードの番号「${result}」に該当するPCが見つかりません。`)
-              detectedRef.current = false
-              startCamera()
-              return
+              setError(
+                `QRコードの番号「${result}」に該当するPCが見つかりません。`,
+              );
+              detectedRef.current = false;
+              startCamera();
+              return;
             }
-            navigate(`/pc/${result}`, { state: { pc } })
-            return
+            navigate(`/pc/${result}`, { state: { pc } });
+            return;
           }
         } catch {
           // QR未検出は無視してループ継続
         }
-        rafRef.current = requestAnimationFrame(scan)
-      }
- 
-      rafRef.current = requestAnimationFrame(scan)
-    }
- 
-    startCamera()
- 
+        rafRef.current = requestAnimationFrame(scan);
+      };
+
+      rafRef.current = requestAnimationFrame(scan);
+    };
+
+    startCamera();
+
     return () => {
-      cancelled = true
-      stopCamera()
-    }
-  }, [isAuthenticated, stopCamera, navigate])
- 
+      cancelled = true;
+      stopCamera();
+    };
+  }, [isAuthenticated, stopCamera, navigate]);
+
   return (
     <div style={styles.page}>
       <TopBar title="QRスキャン" showPcList />
- 
+
       <div style={styles.body}>
         <div style={styles.card}>
           {!isAuthenticated ? (
-            // ── 未ログイン状態 ──────────────────────────────
             <div style={styles.lockedState}>
               <div style={styles.iconWrap}>
-                {/* スキャンフレーム＋鍵アイコン */}
                 <div style={styles.scanFrameStatic}>
                   <span style={styles.cornerTL} />
                   <span style={styles.cornerTR} />
                   <span style={styles.cornerBL} />
                   <span style={styles.cornerBR} />
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="64"
+                    height="64"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#333"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
@@ -140,7 +150,6 @@ export default function QrScanPage() {
               <p style={styles.lockedText}>ログイン後にカメラが起動します</p>
             </div>
           ) : (
-            // ── ログイン済み・スキャン中 ────────────────────
             <div style={styles.cameraState}>
               <div style={styles.cameraWrap}>
                 <video ref={videoRef} style={styles.video} muted playsInline />
@@ -157,15 +166,16 @@ export default function QrScanPage() {
                       <div style={styles.crossH} />
                       <div style={styles.crossV} />
                     </div>
-                    <p style={styles.scanHint}>カメラ起動中 — QRコードをかざしてください</p>
+                    <p style={styles.scanHint}>
+                      カメラ起動中 — QRコードをかざしてください
+                    </p>
                   </div>
                 )}
               </div>
             </div>
           )}
         </div>
- 
-        {/* 右側テキスト */}
+
         <div style={styles.sideText}>
           <p style={styles.sideTitle}>スキャン方法</p>
           <p style={styles.sideBody}>
@@ -173,10 +183,10 @@ export default function QrScanPage() {
           </p>
         </div>
       </div>
- 
+
       {error && <ErrorDialog message={error} onClose={() => setError("")} />}
     </div>
-  )
+  );
 }
 
 const CORNER_SIZE = 20;

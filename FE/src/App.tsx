@@ -3,7 +3,6 @@ import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
-import LoanFormPage from "./pages/LoanFormPage";
 import PcInfoPage from "./pages/PcInfoPage";
 import PcListPage from "./pages/PcListPage";
 import PcRegisterPage from "./pages/PcRegisterPage";
@@ -25,14 +24,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <PcInfoPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/pc/:no/loan"
-        element={
-          <ProtectedRoute>
-            <LoanFormPage />
           </ProtectedRoute>
         }
       />

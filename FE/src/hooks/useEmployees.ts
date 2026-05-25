@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+
+import type { Employee } from "../types/index"
 import { gasApi } from "../api/gas"
 import { useAuth } from "./useAuth"
-import type { Employee } from "../types/index"
 
 let cache: Employee[] | null = null
 let fetchPromise: Promise<Employee[]> | null = null
@@ -11,43 +12,40 @@ const notify = () => listeners.forEach((fn) => fn())
 
 export function useEmployees() {
     const { isAuthenticated } = useAuth()
-    const [employees, setEmployees] = useState<Employee[]>(cache ?? [])
-    const [loading, setLoading] = useState(!cache)
+    const [employees, setEmployees] = useState<Employee[]>(() => cache ?? [])
+    const [loading, setLoading] = useState(() => !cache)
     const [error, setError] = useState<string>("")
 
     useEffect(() => {
         const sync = () => {
-            if (cache) {
-                setEmployees(cache)
-                setLoading(false)
-            }
+            if (cache) setEmployees(cache)
         }
         listeners.add(sync)
-        sync()
         return () => { listeners.delete(sync) }
     }, [])
 
     useEffect(() => {
-        if (!isAuthenticated) return
-        if (cache) {
-            setEmployees(cache)
-            setLoading(false)
-            return
-        }
+        if (!isAuthenticated || cache) return
+
         if (!fetchPromise) {
             fetchPromise = gasApi.getEmployees()
         }
-        setLoading(true)
+
+        let cancelled = false
         fetchPromise
             .then((data) => {
+                if (cancelled) return
                 cache = data
+                setLoading(false)
                 notify()
             })
             .catch((e) => {
+                if (cancelled) return
                 setError(e instanceof Error ? e.message : "Unknown error")
+                setLoading(false)
                 fetchPromise = null
             })
-            .finally(() => setLoading(false))
+        return () => { cancelled = true }
     }, [isAuthenticated])
 
     return { employees, loading, error }
