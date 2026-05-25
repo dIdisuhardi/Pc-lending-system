@@ -7,6 +7,7 @@ type TopBarProps = {
   showBack?: boolean;
   onBack?: () => void;
   showPcList?: boolean;
+  registerBtn?: boolean;
 };
 
 export default function TopBar({
@@ -14,6 +15,7 @@ export default function TopBar({
   showBack,
   onBack,
   showPcList,
+  registerBtn,
 }: TopBarProps) {
   const { isAuthenticated, userEmail, login, logout } = useAuth();
   const navigate = useNavigate();
@@ -46,6 +48,16 @@ export default function TopBar({
             PC一覧
           </button>
         )}
+          {registerBtn && (
+            <button
+              style={{
+                ...styles.iconButton
+              }}
+              onClick={() => navigate("/pc-register")}
+            >
+              + PC登録
+            </button>
+          )}
 
         {isAuthenticated ? (
           <div style={styles.userArea}>
