@@ -34,11 +34,13 @@ export default function LoanDialog({ form, onClose }: LoanDialogProps) {
         <div style={styles.body}>
           <div style={styles.summary}>
             <div style={{ ...styles.title, textAlign: "center" }}>PC貸出証</div>
-            <Row label="番号" value={form.PCNo} />
             <Row label="PC名" value={form.PCName} />
+            <Row label="番号" value={form.PCNo} />
             <Row label="借用者" value={form.user} />
             <Row label="分類" value={form.classification} />
+            <Row label="用途" value={form.purpose} />
             <Row label="場所" value={form.place} />
+            <Row label="貸出日" value={form.lendingDate} />
           </div>
         </div>
 
