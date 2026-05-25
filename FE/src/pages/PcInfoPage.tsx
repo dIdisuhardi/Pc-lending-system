@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { usePcData } from "../hooks/usePcData";
-import { useDropdowns } from "../hooks/useDropdowns";
-import { useEmployees } from "../hooks/useEmployees";
-import type { PC } from "../types/index";
-import TopBar from "../components/common/TopBar";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+
+import ErrorDialog from "../components/common/ErrorDialog";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import LoanDialog from "./LoanFormPage";
 import PcInfoReadOnly from "../components/pc/PcInfoReadOnly";
 import PcStatusForm from "../components/pc/PcStatusForm";
-import LoadingSpinner from "../components/common/LoadingSpinner";
-import ErrorDialog from "../components/common/ErrorDialog";
+import TopBar from "../components/common/TopBar";
+import type { PC } from "../types/index";
+import { useDropdowns } from "../hooks/useDropdowns";
+import { useEmployees } from "../hooks/useEmployees";
+import { usePcData } from "../hooks/usePcData";
 
 export default function PcInfoPage() {
   const { no } = useParams<{ no: string }>();
@@ -24,15 +26,12 @@ export default function PcInfoPage() {
   const [pc, setPc] = useState<PC | null>(statePC);
   const [form, setForm] = useState<Partial<PC>>(statePC ?? {});
   const [error, setError] = useState<string>("");
+  const displayError = error || pcError;
   const [isLending, setIsLending] = useState(false);
-
-  useEffect(() => {
-    if (pcError) setError(pcError);
-  }, [pcError]);
+  const [showLoanDialog, setShowLoanDialog] = useState(false);
 
   useEffect(() => {
     if (statePC || !no) return;
-
     const load = async () => {
       const data = await fetchPc(no);
       if (!data) {
@@ -41,7 +40,6 @@ export default function PcInfoPage() {
       }
       setPc(data);
       setForm(data);
-      setIsLending(false);
     };
     load();
   }, [no, fetchPc, statePC]);
@@ -50,13 +48,10 @@ export default function PcInfoPage() {
     if (!form.PCNo) return;
     const ok = await savePc(form);
     if (!ok) return;
-    // 保存成功後: 貸出系分類が選択されていれば貸出ボタンを活性化（修正済み仕様）
-    setIsLending(true);
+    setIsLending((form.place == "2現場" || form.place == "3自宅") ?? false);
   };
 
-  const handleLending = () => {
-    navigate(`/pc/${no}/loan`, { state: { form } });
-  };
+  const handleLending = () => setShowLoanDialog(true);
 
   if (loading || dropdownsLoading || employeesLoading)
     return <LoadingSpinner message="読み込み中..." />;
@@ -73,7 +68,9 @@ export default function PcInfoPage() {
             dropdowns={dropdowns}
             employees={employees}
             isLending={isLending}
-            onChange={setForm}
+            onChange={(updated) => {
+              setForm(updated);
+            }}
             onSave={handleSave}
             onLending={handleLending}
             saving={saving}
@@ -81,9 +78,13 @@ export default function PcInfoPage() {
         </div>
       </div>
 
-      {error && (
+      {showLoanDialog && (
+        <LoanDialog form={form} onClose={() => setShowLoanDialog(false)} />
+      )}
+
+      {displayError && (
         <ErrorDialog
-          message={error}
+          message={displayError}
           onClose={() => {
             setError("");
             navigate("/");

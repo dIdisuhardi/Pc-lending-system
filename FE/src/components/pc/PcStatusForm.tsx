@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+
 import type { PC, Dropdowns, Employee } from "../../types/index";
 
 type PcStatusFormProps = {
@@ -123,22 +124,6 @@ export default function PcStatusForm({
       </div>
 
       <div style={styles.field}>
-        <label style={styles.label}>場所</label>
-        <select
-          style={styles.select}
-          value={form.place ?? ""}
-          onChange={(e) => onChange({ ...form, place: e.target.value })}
-        >
-          <option value="">選択してください</option>
-          {(dropdowns?.place ?? []).map((v) => (
-            <option key={v} value={v}>
-              {v}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div style={styles.field}>
         <label style={styles.label}>現在使用者</label>
         <div style={styles.employeeWrap}>
           <input
@@ -168,26 +153,66 @@ export default function PcStatusForm({
                   >
                     <span style={styles.empName}>{emp.name}</span>
                     <span style={styles.empMeta}>
-                      #{emp.employeeNo} · {emp.type}
+                      #{String(emp.employeeNo)}・{emp.type}
                     </span>
                   </li>
                 ))}
               </ul>
             )}
         </div>
+      </div>
 
-        {form.employmentStatus && (
-          <span
+      <div style={styles.field}>
+        <label style={styles.label}>在/退職</label>
+        <div style={styles.employeeWrap}>
+          <input
             style={{
-              ...styles.statusBadge,
-              background:
-                form.employmentStatus === "退職" ? "#FEE2E2" : "#DCFCE7",
-              color: form.employmentStatus === "退職" ? "#991B1B" : "#166534",
+              ...styles.searchInput,
+              background: "#1C1C1C80",
+              cursor: "not-allowed",
             }}
-          >
-            {form.employmentStatus}
-          </span>
-        )}
+            type="text"
+            value={form.employmentStatus || ""}
+            readOnly
+          />
+        </div>
+      </div>
+
+      <div style={styles.field}>
+        <label style={styles.label}>場所</label>
+        <select
+          style={styles.select}
+          value={form.place ?? ""}
+          onChange={(e) => onChange({ ...form, place: e.target.value })}
+        >
+          <option value="">選択してください</option>
+          {(dropdowns?.place ?? []).map((v) => (
+            <option key={v} value={v}>
+              {v}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div style={styles.field}>
+        <label style={styles.label}>貸出日</label>
+        <input
+          type="date"
+          style={{
+            ...styles.select,
+            background:
+              form.place != "2現場" && form.place != "3自宅"
+                ? "#1C1C1C80"
+                : styles.select.background,
+            cursor:
+              form.place != "2現場" && form.place != "3自宅"
+                ? "not-allowed"
+                : styles.select.cursor,
+          }}
+          value={form.lendingDate ?? ""}
+          onChange={(e) => onChange({ ...form, lendingDate: e.target.value })}
+          disabled={(form.place != "2現場" && form.place != "3自宅") ?? false}
+        />
       </div>
 
       <div style={styles.field}>
@@ -201,7 +226,12 @@ export default function PcStatusForm({
       </div>
 
       <div style={styles.buttonRow}>
-        <button style={styles.saveButton} onClick={onSave} disabled={saving}>
+        <button
+          style={{ ...styles.saveButton, opacity: saving ? 0.4 : 1 }}
+          onClick={onSave}
+          disabled={saving}
+        >
+          ✓<span style={{ marginLeft: 6 }}></span>
           {saving ? "保存中..." : "保存"}
         </button>
 
@@ -214,6 +244,10 @@ export default function PcStatusForm({
           onClick={onLending}
           disabled={!isLending || saving}
         >
+          <svg viewBox="0 0 384 512" height="16" width="12" fill="currentColor">
+            <path d="M64 48l112 0 0 88c0 39.8 32.2 72 72 72l88 0 0 240c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16L48 64c0-8.8 7.2-16 16-16zM224 67.9l92.1 92.1-68.1 0c-13.3 0-24-10.7-24-24l0-68.1zM64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-261.5c0-17-6.7-33.3-18.7-45.3L242.7 18.7C230.7 6.7 214.5 0 197.5 0L64 0zm56 256c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0zm0 96c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0z" />
+          </svg>
+          <span style={{ marginLeft: 6 }}></span>
           貸出処理
         </button>
       </div>
@@ -226,7 +260,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "16px",
     display: "flex",
     flexDirection: "column",
-    gap: 12,
+    gap: 4,
   },
   sectionTitle: {
     fontSize: 15,
@@ -315,24 +349,27 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     gap: 10,
     marginTop: 8,
+    justifyContent: "flex-end",
   },
   saveButton: {
-    flex: 1,
+    width: "25%",
     padding: "10px 0",
-    background: "#1a73e8",
+    background: "#FF6F20",
     color: "#fff",
     border: "none",
-    borderRadius: 6,
-    fontSize: 14,
+    borderRadius: 4,
+    fontSize: 16,
     cursor: "pointer",
+    fontWeight: 500,
   },
   lendingButton: {
-    flex: 1,
+    width: "25%",
     padding: "10px 0",
-    background: "#e8710a",
-    color: "#fff",
+    background: "#FFB74D",
+    color: "#000",
     border: "none",
-    borderRadius: 6,
-    fontSize: 14,
+    borderRadius: 4,
+    fontSize: 16,
+    fontWeight: 500,
   },
 };

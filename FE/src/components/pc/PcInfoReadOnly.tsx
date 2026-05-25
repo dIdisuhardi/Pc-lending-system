@@ -48,7 +48,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "16px",
     display: "flex",
     flexDirection: "column",
-    gap: 12,
+    gap: 4,
   },
   sectionTitle: {
      fontSize: 15,
