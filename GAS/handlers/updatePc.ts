@@ -29,11 +29,6 @@ function updatePc(
     ) {
       autoFields["以前使用者"] = currentRow["現在使用者"]
     }
-    if (params["現在使用者"] !== undefined) {
-      const employees = client.getAllRows("社員名簿", 2)
-      const emp = employees.find((em) => em["名前"] === params["現在使用者"])
-      autoFields["在/退職"] = emp?.["区分"] ?? ""
-    }
     const { action: _a, no: _n, ...sheetsUpdates } = {
       ...params,
       ...autoFields,
