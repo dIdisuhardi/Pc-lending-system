@@ -68,12 +68,18 @@ class SheetClient {
   appendRow(sheetName: string, rowData: Record<string, unknown>): void {
     const sheet = this.getSheet(sheetName)
     const headers = sheet.getRange(3, 1, 1, sheet.getLastColumn()).getValues()[0] as (string | null)[]
-
     const newRow = headers.map((header) => {
       if (!header) return ""
       const cleanHeader = String(header).replace(/\n/g, "")
       return rowData[cleanHeader] ?? ""
     })
+    const lastDataRow = sheet.getLastRow()
     sheet.appendRow(newRow)
+    const newRowIndex = sheet.getLastRow()
+    const sourceRange = sheet.getRange(lastDataRow, 1, 1, sheet.getLastColumn())
+    const targetRange = sheet.getRange(newRowIndex, 1, 1, sheet.getLastColumn())
+
+    sourceRange.copyTo(targetRange, SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false)
+    sourceRange.copyTo(targetRange, SpreadsheetApp.CopyPasteType.PASTE_DATA_VALIDATION, false)
   }
 }

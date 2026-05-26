@@ -17,6 +17,12 @@ function registerPc(
   return withLock(() => {
     const existing = client.findRowByno(no)
     if (existing !== -1) return errorResponse("この番号はすでに登録済み")
+    const allRows = client.getAllRows("PC一覧", 3)
+    const maxNo = allRows.reduce((max, row) => {
+      const val = parseInt(String(row["No."] ?? "0"), 10)
+      return isNaN(val) ? max : Math.max(max, val)
+    }, 0)
+    params["No."] = maxNo + 1
     if (params["現在使用者"]) {
       const employees = client.getAllRows("社員名簿", 2)
       const emp = employees.find((em) => em["名前"] === params["現在使用者"])
