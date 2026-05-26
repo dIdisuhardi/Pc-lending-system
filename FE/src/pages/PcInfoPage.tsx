@@ -29,6 +29,9 @@ export default function PcInfoPage() {
   const displayError = error || pcError;
   const [isLending, setIsLending] = useState(false);
   const [showLoanDialog, setShowLoanDialog] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<keyof PC, string>>
+  >({});
 
   useEffect(() => {
     if (statePC || !no) return;
@@ -42,10 +45,66 @@ export default function PcInfoPage() {
       setForm(data);
     };
     load();
-  }, [no, fetchPc, statePC]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [no]);
+
+  const validateField = (key: keyof PC, value: string) => {
+    switch (key) {
+      case "status":
+        return value.trim() ? "" : "状況は必須です";
+      case "classification":
+        return value.trim() ? "" : "分類は必須です";
+      default:
+        return "";
+    }
+  };
+
+  const validate = () => {
+    const errors: Partial<Record<keyof PC, string>> = {};
+    errors.status = validateField("status", form.status || "");
+    errors.classification = validateField(
+      "classification",
+      form.classification || "",
+    );
+
+    Object.keys(errors).forEach((key) => {
+      if (!errors[key as keyof PC]) {
+        delete errors[key as keyof PC];
+      }
+    });
+
+    setFieldErrors(errors);
+
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleFormChange = (updated: Partial<PC>) => {
+    const newForm = {
+      ...form,
+      ...updated,
+    };
+
+    setForm(newForm);
+
+    const newErrors = { ...fieldErrors };
+
+    (Object.keys(updated) as (keyof PC)[]).forEach((key) => {
+      const value = String(newForm[key] ?? "");
+      const error = validateField(key, value);
+
+      if (error) {
+        newErrors[key] = error;
+      } else {
+        delete newErrors[key];
+      }
+    });
+
+    setFieldErrors(newErrors);
+  };
 
   const handleSave = async () => {
     if (!form.PCNo) return;
+    if (!validate()) return;
     const ok = await savePc(form);
     if (!ok) return;
     setIsLending((form.place == "2現場" || form.place == "3自宅") ?? false);
@@ -58,7 +117,12 @@ export default function PcInfoPage() {
 
   return (
     <div style={styles.page}>
-      <TopBar title="PC情報" showBack onBack={() => navigate("/")} showPcList />
+      <TopBar
+        title={`PC情報-${form.PCName}`}
+        showBack
+        onBack={() => navigate("/")}
+        showPcList
+      />
 
       <div style={styles.body}>
         <div style={styles.container}>{pc && <PcInfoReadOnly pc={pc} />}</div>
@@ -68,9 +132,8 @@ export default function PcInfoPage() {
             dropdowns={dropdowns}
             employees={employees}
             isLending={isLending}
-            onChange={(updated) => {
-              setForm(updated);
-            }}
+            fieldErrors={fieldErrors}
+            onChange={handleFormChange}
             onSave={handleSave}
             onLending={handleLending}
             saving={saving}
@@ -98,7 +161,6 @@ export default function PcInfoPage() {
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
-    background: "#f5f5f5",
     display: "flex",
     flexDirection: "column",
   },

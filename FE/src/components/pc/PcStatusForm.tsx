@@ -11,6 +11,8 @@ type PcStatusFormProps = {
   onSave: () => void;
   onLending: () => void;
   saving?: boolean;
+  renderButtons?: () => React.ReactNode;
+  fieldErrors?: Partial<Record<keyof PC, string>>;
 };
 
 export default function PcStatusForm({
@@ -22,18 +24,11 @@ export default function PcStatusForm({
   onSave,
   onLending,
   saving = false,
+  renderButtons,
+  fieldErrors,
 }: PcStatusFormProps) {
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [showEmployeeList, setShowEmployeeList] = useState(false);
-  const handleClassChange = (value: string) => {
-    onChange({
-      ...form,
-      classification: value,
-      purpose: "",
-      type: "",
-      place: "",
-    });
-  };
 
   const handleEmployeeSelect = (emp: Employee) => {
     onChange({
@@ -60,9 +55,14 @@ export default function PcStatusForm({
       <h3 style={styles.sectionTitle}>ステータス更新</h3>
 
       <div style={styles.field}>
-        <label style={styles.label}>状況</label>
+        <label style={styles.label}>
+          状況 <span style={styles.required}>*</span>
+        </label>
         <select
-          style={styles.select}
+          style={{
+            ...styles.select,
+            ...(fieldErrors?.status ? { borderColor: "#e53935" } : {}),
+          }}
           value={form.status ?? ""}
           onChange={(e) => onChange({ ...form, status: e.target.value })}
         >
@@ -73,14 +73,22 @@ export default function PcStatusForm({
             </option>
           ))}
         </select>
+        {fieldErrors?.status && (
+          <span style={styles.fieldError}>{fieldErrors.status}</span>
+        )}
       </div>
 
       <div style={styles.field}>
-        <label style={styles.label}>分類</label>
+        <label style={styles.label}>
+          分類 <span style={styles.required}>*</span>
+        </label>
         <select
-          style={styles.select}
+          style={{
+            ...styles.select,
+            ...(fieldErrors?.classification ? { borderColor: "#e53935" } : {}),
+          }}
           value={form.classification ?? ""}
-          onChange={(e) => handleClassChange(e.target.value)}
+          onChange={(e) => onChange({ ...form, classification: e.target.value })}
         >
           <option value="">選択してください</option>
           {(dropdowns?.classification ?? []).map((v) => (
@@ -89,6 +97,9 @@ export default function PcStatusForm({
             </option>
           ))}
         </select>
+        {fieldErrors?.classification && (
+          <span style={styles.fieldError}>{fieldErrors.classification}</span>
+        )}
       </div>
 
       <div style={styles.field}>
@@ -201,17 +212,17 @@ export default function PcStatusForm({
           style={{
             ...styles.select,
             background:
-              form.place != "2現場" && form.place != "3自宅"
+              form.place !== "2現場" && form.place !== "3自宅"
                 ? "#1C1C1C80"
                 : styles.select.background,
             cursor:
-              form.place != "2現場" && form.place != "3自宅"
+              form.place !== "2現場" && form.place !== "3自宅"
                 ? "not-allowed"
                 : styles.select.cursor,
           }}
           value={form.lendingDate ?? ""}
           onChange={(e) => onChange({ ...form, lendingDate: e.target.value })}
-          disabled={(form.place != "2現場" && form.place != "3自宅") ?? false}
+          disabled={form.place !== "2現場" && form.place !== "3自宅"}
         />
       </div>
 
@@ -225,32 +236,41 @@ export default function PcStatusForm({
         />
       </div>
 
-      <div style={styles.buttonRow}>
-        <button
-          style={{ ...styles.saveButton, opacity: saving ? 0.4 : 1 }}
-          onClick={onSave}
-          disabled={saving}
-        >
-          ✓<span style={{ marginLeft: 6 }}></span>
-          {saving ? "保存中..." : "保存"}
-        </button>
+      {renderButtons ? (
+        renderButtons()
+      ) : (
+        <div style={styles.buttonRow}>
+          <button
+            style={{ ...styles.saveButton, opacity: saving ? 0.4 : 1 }}
+            onClick={onSave}
+            disabled={saving}
+          >
+            ✓<span style={{ marginLeft: 6 }} />
+            {saving ? "保存中..." : "保存"}
+          </button>
 
-        <button
-          style={{
-            ...styles.lendingButton,
-            opacity: isLending ? 1 : 0.4,
-            cursor: isLending ? "pointer" : "not-allowed",
-          }}
-          onClick={onLending}
-          disabled={!isLending || saving}
-        >
-          <svg viewBox="0 0 384 512" height="16" width="12" fill="currentColor">
-            <path d="M64 48l112 0 0 88c0 39.8 32.2 72 72 72l88 0 0 240c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16L48 64c0-8.8 7.2-16 16-16zM224 67.9l92.1 92.1-68.1 0c-13.3 0-24-10.7-24-24l0-68.1zM64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-261.5c0-17-6.7-33.3-18.7-45.3L242.7 18.7C230.7 6.7 214.5 0 197.5 0L64 0zm56 256c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0zm0 96c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0z" />
-          </svg>
-          <span style={{ marginLeft: 6 }}></span>
-          貸出処理
-        </button>
-      </div>
+          <button
+            style={{
+              ...styles.lendingButton,
+              opacity: isLending ? 1 : 0.4,
+              cursor: isLending ? "pointer" : "not-allowed",
+            }}
+            onClick={onLending}
+            disabled={!isLending || saving}
+          >
+            <svg
+              viewBox="0 0 384 512"
+              height="16"
+              width="12"
+              fill="currentColor"
+            >
+              <path d="M64 48l112 0 0 88c0 39.8 32.2 72 72 72l88 0 0 240c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16L48 64c0-8.8 7.2-16 16-16zM224 67.9l92.1 92.1-68.1 0c-13.3 0-24-10.7-24-24l0-68.1zM64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-261.5c0-17-6.7-33.3-18.7-45.3L242.7 18.7C230.7 6.7 214.5 0 197.5 0L64 0zm56 256c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0zm0 96c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0z" />
+            </svg>
+            <span style={{ marginLeft: 6 }} />
+            貸出処理
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -261,13 +281,16 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     flexDirection: "column",
     gap: 4,
+    height: "100%",
+    border: "1px solid #E2E4E5",
+    borderRadius: 8,
+    paddingBottom: 0,
   },
   sectionTitle: {
     fontSize: 15,
     fontWeight: 500,
     margin: 0,
     paddingBottom: 8,
-    borderBottom: "1px solid #e0e0e0",
   },
   field: {
     display: "flex",
@@ -281,8 +304,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   select: {
     padding: "8px 10px",
-    borderRadius: 6,
-    border: "1px solid #d0d0d0",
+    border: "none",
+    borderBottom: "1px solid #E2E4E5",
     fontSize: 14,
     background: "#fff",
   },
@@ -292,13 +315,13 @@ const styles: Record<string, React.CSSProperties> = {
   searchInput: {
     width: "100%",
     padding: "8px 10px",
-    borderRadius: 6,
-    border: "1px solid #d0d0d0",
+    border: "none",
+    borderBottom: "1px solid #E2E4E5",
     fontSize: 14,
-    boxSizing: "border-box",
+    boxSizing: "border-box" as const,
   },
   employeeList: {
-    position: "absolute",
+    position: "absolute" as const,
     top: "100%",
     left: 0,
     right: 0,
@@ -307,7 +330,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 6,
     boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
     maxHeight: 200,
-    overflowY: "auto",
+    overflowY: "auto" as const,
     zIndex: 100,
     margin: 0,
     padding: 0,
@@ -340,9 +363,9 @@ const styles: Record<string, React.CSSProperties> = {
   textarea: {
     padding: "8px 10px",
     borderRadius: 6,
-    border: "1px solid #d0d0d0",
+    border: "1px solid #E2E4E5",
     fontSize: 14,
-    resize: "vertical",
+    resize: "vertical" as const,
     fontFamily: "inherit",
   },
   buttonRow: {
@@ -363,6 +386,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 500,
   },
   lendingButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     width: "25%",
     padding: "10px 0",
     background: "#FFB74D",
@@ -371,5 +397,15 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 4,
     fontSize: 16,
     fontWeight: 500,
+    cursor: "pointer",
+  },
+  required: {
+    color: "#e53935",
+    fontSize: 12,
+  },
+  fieldError: {
+    fontSize: 11,
+    color: "#e53935",
+    marginTop: 2,
   },
 };
