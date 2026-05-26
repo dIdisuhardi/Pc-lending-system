@@ -5,6 +5,7 @@ import ErrorDialog from "../components/common/ErrorDialog";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import PcInfoReadOnly from "../components/pc/PcInfoReadOnly";
 import PcStatusForm from "../components/pc/PcStatusForm";
+import QrDialog from "./QrPrintPage";
 import TopBar from "../components/common/TopBar";
 import type { PC } from "../types/index";
 import { useDropdowns } from "../hooks/useDropdowns";
@@ -33,6 +34,7 @@ export default function PcRegisterPage() {
     Partial<Record<keyof PC, string>>
   >({});
   const [saved, setSaved] = useState(isEditMode);
+  const [showQr, setShowQr] = useState(false);
 
   useEffect(() => {
     if (!isEditMode) return;
@@ -44,13 +46,14 @@ export default function PcRegisterPage() {
   }, [no]);
 
   const validateField = (key: keyof PC, value: string) => {
+    const strValue = String(value ?? "");
     switch (key) {
       case "PCNo":
-        return value.trim() ? "" : "番号は必須です";
+        return strValue.trim() ? "" : "番号は必須です";
       case "status":
-        return value.trim() ? "" : "状況は必須です";
+        return strValue.trim() ? "" : "状況は必須です";
       case "classification":
-        return value.trim() ? "" : "分類は必須です";
+        return strValue.trim() ? "" : "分類は必須です";
       default:
         return "";
     }
@@ -102,19 +105,16 @@ export default function PcRegisterPage() {
   };
 
   const handleSave = async () => {
-    if (!validate()) return
+    if (!validate()) return;
     if (isEditMode) {
-      const ok = await savePc(form);
-      if (ok) navigate("/pc-list");
+      await savePc(form);
     } else {
       const ok = await registerPc(form);
       if (ok) setSaved(true);
     }
   };
 
-  const handleQr = () => {
-    navigate(`/qr-print/${form.PCNo}`);
-  };
+  const handleQr = () => setShowQr(true);
 
   if (loading || dropdownsLoading || employeesLoading)
     return <LoadingSpinner message="読み込み中..." />;
@@ -127,7 +127,6 @@ export default function PcRegisterPage() {
         title={isEditMode ? "PCデータ更新" : "PC登録"}
         showBack
         onBack={() => navigate("/pc-list")}
-        showPcList
       />
 
       <div style={styles.body}>
@@ -191,6 +190,14 @@ export default function PcRegisterPage() {
           />
         </div>
       </div>
+
+      {showQr && (
+        <QrDialog
+          pcNo={String(form.PCNo ?? "")}
+          pcName={String(form.PCName ?? "")}
+          onClose={() => setShowQr(false)}
+        />
+      )}
 
       {displayError && (
         <ErrorDialog

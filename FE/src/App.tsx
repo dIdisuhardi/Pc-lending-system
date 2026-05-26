@@ -6,7 +6,6 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import PcInfoPage from "./pages/PcInfoPage";
 import PcListPage from "./pages/PcListPage";
 import PcRegisterPage from "./pages/PcRegisterPage";
-import QrPrintPage from "./pages/QrPrintPage";
 import QrScanPage from "./pages/QrScanPage";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -48,14 +47,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <PcRegisterPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/qr-print/:no"
-        element={
-          <ProtectedRoute>
-            <QrPrintPage />
           </ProtectedRoute>
         }
       />
