@@ -44,14 +44,28 @@ export default function PcListPage() {
 
   return (
     <div style={styles.page}>
-      <TopBar
-        title="PC一覧"
-        showBack
-        onBack={() => navigate("/")}
-        registerBtn
-      />
+      <TopBar title="PC一覧" showBack onBack={() => navigate("/")} />
 
-      <div style={styles.toolbar}></div>
+      <div style={styles.toolbar}>
+        <button
+          style={{
+            ...styles.iconButton,
+          }}
+          onClick={() => navigate("/pc-register")}
+          className="topbar-register"
+        >
+          + PC登録
+        </button>
+        <button
+          style={{
+            ...styles.iconButton,
+          }}
+          onClick={() => navigate("/history", { state: { pcList } })}
+          className="topbar-register"
+        >
+          変更履歴
+        </button>
+      </div>
 
       <div style={styles.tableWrap}>
         <table style={styles.table}>
@@ -130,12 +144,21 @@ const styles: Record<string, React.CSSProperties> = {
   toolbar: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     padding: "12px 4%",
+    gap: 8,
   },
   count: {
     fontSize: 13,
     color: "#666",
+  },
+  iconButton: {
+    border: "none",
+    color: "#000",
+    fontSize: 16,
+    cursor: "pointer",
+    padding: "4px 8px",
+    borderRadius: "8px",
   },
   registerBtn: {
     padding: "8px 18px",

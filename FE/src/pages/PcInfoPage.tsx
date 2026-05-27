@@ -8,6 +8,7 @@ import PcInfoReadOnly from "../components/pc/PcInfoReadOnly";
 import PcStatusForm from "../components/pc/PcStatusForm";
 import TopBar from "../components/common/TopBar";
 import type { PC } from "../types/index";
+import { useAuth } from "../hooks/useAuth";
 import { useDropdowns } from "../hooks/useDropdowns";
 import { useEmployees } from "../hooks/useEmployees";
 import { usePcData } from "../hooks/usePcData";
@@ -16,6 +17,7 @@ export default function PcInfoPage() {
   const { no } = useParams<{ no: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { userEmail } = useAuth();
 
   const { loading, saving, error: pcError, fetchPc, savePc } = usePcData();
   const { dropdowns, loading: dropdownsLoading } = useDropdowns();
@@ -105,7 +107,10 @@ export default function PcInfoPage() {
   const handleSave = async () => {
     if (!form.PCNo) return;
     if (!validate()) return;
-    const ok = await savePc(form);
+    const ok = await savePc(form, {
+      editor: userEmail,
+      editType: "PC貸出",
+    });
     if (!ok) return;
     setIsLending((form.place == "2現場" || form.place == "3自宅") ?? false);
   };

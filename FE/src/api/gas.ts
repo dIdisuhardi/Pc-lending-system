@@ -1,4 +1,4 @@
-import type { PC, Employee, Dropdowns, ApiResponse } from "../types/index"
+import type { PC, Employee, Dropdowns, ApiResponse, HistoryEntry } from "../types/index"
 
 const GAS_URL = import.meta.env.VITE_GAS_URL as string
 
@@ -24,6 +24,15 @@ async function post<T>(action: string, body: object): Promise<T> {
     return data.data!
 }
 
+function toDateString(raw: unknown): string {
+    if (!raw) return ""
+    const s = String(raw)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
+    const match = s.match(/^(\d{4}-\d{2}-\d{2})/)
+    if (match) return match[1]
+    return ""
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapPC(r: any): PC {
     return {
@@ -40,15 +49,15 @@ function mapPC(r: any): PC {
         place: r["場所"],
         state: r["状態"],
         note: r["備考"],
-        lendingDate: r["貸出日"],
+        lendingDate: toDateString(r["貸出日"]),
         manufacture: r["製造社"],
         modelName: r["モデル名"],
         CPU: r["CPU"],
         RAM: r["RAM"],
-        purchaseDate: r["購入日"],
+        purchaseDate:  toDateString(r["購入日"]),
         OSName: r["OS名"],
         OSLicence: r["OS Licence"],
-        backupImageCreationDate: r["バックアップイメージ作成日"],
+        backupImageCreationDate:  toDateString(r["バックアップイメージ作成日"]),
         OfficeLicence: r["Office Licence"],
         IP: r["IP"],
     }
@@ -71,6 +80,22 @@ function mapDropdowns(r: any): Dropdowns {
         purpose: r["用途"],
         type: r["区分"],
         place: r["場所"],
+    }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapHistoryEntry(r: any): HistoryEntry {
+    const raw = String(r["タイムスタンプ"] ?? "")
+    const [datePart = "", timePart = ""] = raw.includes("T")
+        ? raw.split("T").map((s, i) => i === 1 ? s.slice(0, 8) : s)
+        : raw.split(" ")
+
+    return {
+        date: datePart,
+        time: timePart.slice(0, 8),
+        pcNo: String(r["番号"] ?? ""),
+        editType: String(r["編集種別"] ?? ""),
+        editor: String(r["編集者"] ?? ""),
     }
 }
 
@@ -119,6 +144,12 @@ export const gasApi = {
         const raw = await get<Record<string, unknown>[]>("getEmployees")
         return raw.map(mapEmployee)
     },
-    updatePc: (form: Partial<PC>) => post<null>("updatePc", unmapPC(form)),
-    registerPc: (form: Partial<PC>) => post<null>("registerPc", unmapPC(form)),
+    updatePc: (form: Partial<PC>, meta: { editor: string; editType: string }) =>
+        post<null>("updatePc", { ...unmapPC(form), ...meta }),
+    registerPc: (form: Partial<PC>, meta: { editor: string }) =>
+        post<null>("registerPc", { ...unmapPC(form), editType: "PC登録", ...meta }),
+    getHistory: async () => {
+        const raw = await get<Record<string, unknown>[]>("getHistory")
+        return raw.map(mapHistoryEntry)
+    },
 }

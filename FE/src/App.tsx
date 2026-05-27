@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
+import HistoryPage from "./pages/HistoryPage";
 import PcInfoPage from "./pages/PcInfoPage";
 import PcListPage from "./pages/PcListPage";
 import PcRegisterPage from "./pages/PcRegisterPage";
@@ -47,6 +48,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <PcRegisterPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <HistoryPage />
           </ProtectedRoute>
         }
       />

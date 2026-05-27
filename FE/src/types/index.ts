@@ -35,7 +35,7 @@ export type Dropdowns = {
   status: string[] // 状況
   classification: string[] // 分類
   purpose: string[] // 用途
-  type : string[] // 区分
+  type: string[] // 区分
   place: string[] // 場所
 }
 
@@ -43,4 +43,18 @@ export type ApiResponse<T> = {
   status: "success" | "error"
   data?: T
   message?: string
+}
+
+export type HistoryEntry = {
+  date: string // タイムスタンプ (日付)
+  time: string // タイムスタンプ (時刻)
+  editType: string // 編集種別
+  editor: string // 編集者
+  pcNo: string // 番号
+  pcName?: string // PC名
+}
+
+export type HistoryMeta = {
+  editor: string
+  editType: string
 }

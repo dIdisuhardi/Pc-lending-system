@@ -1,6 +1,7 @@
 import { useState } from "react"
+
+import type { PC, HistoryMeta } from "../types/index"
 import { gasApi } from "../api/gas"
-import type { PC } from "../types/index"
 
 export function usePcData() {
     const [pc, setPc] = useState<PC | null>(null)
@@ -36,11 +37,11 @@ export function usePcData() {
         }
     }
 
-    const savePc = async (form: Partial<PC>) => {
+    const savePc = async (form: Partial<PC>, meta: HistoryMeta) => {
         setSaving(true)
         setError("")
         try {
-            await gasApi.updatePc(form)
+            await gasApi.updatePc(form, meta)
             return true
         } catch (e) {
             setError(e instanceof Error ? e.message : "Unknown error")
@@ -50,11 +51,11 @@ export function usePcData() {
         }
     }
 
-    const registerPc = async (form: Partial<PC>) => {
+    const registerPc = async (form: Partial<PC>, meta: { editor: string }) => {
         setSaving(true)
         setError("")
         try {
-            await gasApi.registerPc(form)
+            await gasApi.registerPc(form, meta)
             return true
         } catch (e) {
             setError(e instanceof Error ? e.message : "Unknown error")

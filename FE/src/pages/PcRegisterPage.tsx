@@ -8,6 +8,7 @@ import PcStatusForm from "../components/pc/PcStatusForm";
 import QrDialog from "./QrPrintPage";
 import TopBar from "../components/common/TopBar";
 import type { PC } from "../types/index";
+import { useAuth } from "../hooks/useAuth";
 import { useDropdowns } from "../hooks/useDropdowns";
 import { useEmployees } from "../hooks/useEmployees";
 import { usePcData } from "../hooks/usePcData";
@@ -16,6 +17,7 @@ export default function PcRegisterPage() {
   const { no } = useParams<{ no: string }>();
   const navigate = useNavigate();
   const isEditMode = no !== undefined;
+  const { userEmail } = useAuth();
 
   const {
     fetchPc,
@@ -107,9 +109,9 @@ export default function PcRegisterPage() {
   const handleSave = async () => {
     if (!validate()) return;
     if (isEditMode) {
-      await savePc(form);
+      await savePc(form, { editor: userEmail, editType: "PC編集" });
     } else {
-      const ok = await registerPc(form);
+      const ok = await registerPc(form, { editor: userEmail });
       if (ok) setSaved(true);
     }
   };
