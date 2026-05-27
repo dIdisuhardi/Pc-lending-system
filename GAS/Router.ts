@@ -10,6 +10,7 @@ const HANDLERS: Record<string, HandlerFn> = {
   getEmployees,
   updatePc,
   registerPc,
+  getHistory,
 }
 
 const Router = {

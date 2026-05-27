@@ -13,6 +13,10 @@ function updatePc(
 
   const no = String(params["番号"] ?? "")
   if (!no) return errorResponse("不正なパラメーター")
+  const editor   = String(params["editor"]   ?? "")
+  const editType = String(params["editType"] ?? "PC貸出")
+  delete params["editor"]
+  delete params["editType"]
 
   return withLock(() => {
     const rowIndex = client.findRowByno(no)
@@ -35,6 +39,7 @@ function updatePc(
     } as Record<string, unknown> & { action?: unknown; no?: unknown }
 
     client.updateRow("PC一覧", rowIndex, sheetsUpdates)
+    client.writeHistory(editType, editor, no)
     return successResponse(null)
   })
 }

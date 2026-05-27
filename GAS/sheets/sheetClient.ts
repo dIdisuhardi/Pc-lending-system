@@ -82,4 +82,14 @@ class SheetClient {
     sourceRange.copyTo(targetRange, SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false)
     sourceRange.copyTo(targetRange, SpreadsheetApp.CopyPasteType.PASTE_DATA_VALIDATION, false)
   }
+
+  writeHistory(editType: string, editor: string, pcNo: string): void {
+    const sheet = this.getSheet("履歴")
+    const timestamp = Utilities.formatDate(
+      new Date(),
+      Session.getScriptTimeZone(),
+      "yyyy-MM-dd HH:mm:ss"
+    )
+    sheet.appendRow([timestamp, pcNo, editType, editor])
+  }
 }

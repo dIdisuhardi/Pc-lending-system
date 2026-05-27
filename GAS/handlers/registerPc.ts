@@ -13,6 +13,9 @@ function registerPc(
 
   const no = String(params["番号"] ?? "")
   if (!no) return errorResponse("不正なパラメーター")
+  const editor = String(params["editor"] ?? "")
+  delete params["editor"]
+  delete params["editType"]
 
   return withLock(() => {
     const existing = client.findRowByno(no)
@@ -34,6 +37,7 @@ function registerPc(
     }
 
     client.appendRow("PC一覧", rowData)
+    client.writeHistory("PC登録", editor, no)
     return successResponse(null)
   })
 }
