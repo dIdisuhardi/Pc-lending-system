@@ -123,7 +123,7 @@ export default function QrScanPage() {
       <TopBar title="QRスキャン" showPcList />
 
       <div style={styles.body}>
-        <div style={styles.card}>
+        <div style={styles.card} className="qrscan-card">
           {!isAuthenticated ? (
             <div style={styles.lockedState}>
               <div style={styles.iconWrap}>
@@ -154,7 +154,6 @@ export default function QrScanPage() {
               <div style={styles.cameraWrap}>
                 <video ref={videoRef} style={styles.video} muted playsInline />
                 <canvas ref={canvasRef} style={styles.hiddenCanvas} />
-                {/* スキャンフレームオーバーレイ */}
                 {scanning && (
                   <div style={styles.overlayWrap}>
                     <div style={styles.scanFrameLive}>
@@ -176,7 +175,7 @@ export default function QrScanPage() {
           )}
         </div>
 
-        <div style={styles.sideText}>
+        <div style={styles.sideText} className="qrscan-side">
           <p style={styles.sideTitle}>スキャン方法</p>
           <p style={styles.sideBody}>
             PCに貼付されたQRシールをカメラに向けてください。自動で読み取り、PC情報画面へ遷移します。
@@ -206,13 +205,14 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: 32,
-    padding: "40px 24px",
+    gap: 16,
+    padding: 16,
     flexWrap: "wrap",
   },
   card: {
-    width: "75%",
-    height: "512px",
+    maxWidth: "70%",
+    minHeight: 512,
+    aspectRatio: "4 / 2.5",
     background: "#FFE4B5",
     borderRadius: 16,
     display: "flex",

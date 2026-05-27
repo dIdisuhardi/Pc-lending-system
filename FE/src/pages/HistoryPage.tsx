@@ -24,6 +24,9 @@ export default function HistoryPage() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" && window.innerWidth < 600,
+  );
   const location = useLocation();
 
   const pcNameMap = useMemo(() => {
@@ -45,6 +48,12 @@ export default function HistoryPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 600);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+
   if (loading) return <LoadingSpinner message="読み込み中..." />;
 
   return (
@@ -55,61 +64,124 @@ export default function HistoryPage() {
         <span style={styles.count}>{history.length} 件</span>
       </div>
 
-      <div style={styles.tableWrap}>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              {["日付", "時刻", "番号", "PC名", "編集種別", "編集者"].map(
-                (h) => (
-                  <th key={h} style={styles.th}>
-                    {h}
-                  </th>
-                ),
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {history.length === 0 ? (
+      {isMobile ? (
+        <div style={styles.cardList}>
+          {history.length === 0 ? (
+            <p style={styles.emptyCard}>履歴がありません</p>
+          ) : (
+            history.map((entry, i) => (
+              <div key={i} style={styles.historyCard}>
+                {/* Top: edit type badge + datetime */}
+                <div style={styles.cardRow}>
+                  <span
+                    style={{
+                      ...styles.badge,
+                      ...(EDIT_TYPE_STYLE[entry.editType] ?? fallbackBadge),
+                    }}
+                  >
+                    {entry.editType}
+                  </span>
+                  <span style={styles.cardDatetime}>
+                    {entry.date} {entry.time}
+                  </span>
+                </div>
+                {/* PC info */}
+                <div style={styles.cardMeta}>
+                  <CardField
+                    label="番号"
+                    value={
+                      <button
+                        style={styles.linkBtn}
+                        onClick={() => navigate(`/pc-register/${entry.pcNo}`)}
+                      >
+                        {entry.pcNo}
+                      </button>
+                    }
+                  />
+                  <CardField
+                    label="PC名"
+                    value={pcNameMap[entry.pcNo] ?? entry.pcNo}
+                  />
+                  <CardField label="編集者" value={entry.editor} />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
+        <div style={styles.tableWrap}>
+          <table style={styles.table}>
+            <thead>
               <tr>
-                <td colSpan={4} style={styles.emptyCell}>
-                  履歴がありません
-                </td>
+                {["日付", "時刻", "番号", "PC名", "編集種別", "編集者"].map(
+                  (h) => (
+                    <th key={h} style={styles.th}>
+                      {h}
+                    </th>
+                  ),
+                )}
               </tr>
-            ) : (
-              history.map((entry, i) => (
-                <tr key={i} style={styles.tr}>
-                  <td style={styles.td}>{entry.date}</td>
-                  <td style={styles.td}>{entry.time}</td>
-                  <td style={styles.td}>
-                    <button
-                      style={styles.linkBtn}
-                      onClick={() => navigate(`/pc-register/${entry.pcNo}`)}
-                    >
-                      {entry.pcNo}
-                    </button>
+            </thead>
+            <tbody>
+              {history.length === 0 ? (
+                <tr>
+                  <td colSpan={4} style={styles.emptyCell}>
+                    履歴がありません
                   </td>
-                  <td style={styles.td}>
-                    {pcNameMap[entry.pcNo] ?? entry.pcNo}
-                  </td>
-                  <td style={styles.td}>
-                    <span
-                      style={{
-                        ...styles.badge,
-                        ...(EDIT_TYPE_STYLE[entry.editType] ?? fallbackBadge),
-                      }}
-                    >
-                      {entry.editType}
-                    </span>
-                  </td>
-                  <td style={styles.td}>{entry.editor}</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                history.map((entry, i) => (
+                  <tr key={i} style={styles.tr}>
+                    <td style={styles.td}>{entry.date}</td>
+                    <td style={styles.td}>{entry.time}</td>
+                    <td style={styles.td}>
+                      <button
+                        style={styles.linkBtn}
+                        onClick={() => navigate(`/pc-register/${entry.pcNo}`)}
+                      >
+                        {entry.pcNo}
+                      </button>
+                    </td>
+                    <td style={styles.td}>
+                      {pcNameMap[entry.pcNo] ?? entry.pcNo}
+                    </td>
+                    <td style={styles.td}>
+                      <span
+                        style={{
+                          ...styles.badge,
+                          ...(EDIT_TYPE_STYLE[entry.editType] ?? fallbackBadge),
+                        }}
+                      >
+                        {entry.editType}
+                      </span>
+                    </td>
+                    <td style={styles.td}>{entry.editor}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {error && <ErrorDialog message={error} onClose={() => setError("")} />}
+    </div>
+  );
+}
+
+function CardField({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | React.ReactNode;
+}) {
+  return (
+    <div
+      style={{ display: "flex", gap: 6, fontSize: 12, alignItems: "center" }}
+    >
+      <span style={{ color: "#888", minWidth: 44 }}>{label}</span>
+      <span style={{ color: "#000", fontWeight: 500 }}>{value || "—"}</span>
     </div>
   );
 }
@@ -182,5 +254,18 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     padding: 0,
     textDecoration: "underline",
+  },
+  historyCard: {
+    background: "#fff",
+    borderRadius: 10,
+    padding: "12px 14px",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  cardDatetime: {
+    fontSize: 11,
+    color: "#888",
   },
 };

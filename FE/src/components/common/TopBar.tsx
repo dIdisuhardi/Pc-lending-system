@@ -36,6 +36,8 @@ export default function TopBar({
       .topbar-login   { display: none !important; }
       .topbar-logout  { display: none !important; }
       .topbar-pclist  { display: none !important; }
+      .qrscan-card   { width: 100% !important; aspect-ratio: 3/4 !important; min-height: auto !important; }
+      .qrscan-side   { width: 100% !important; }
     }
   `;
     document.head.appendChild(s);

@@ -249,12 +249,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   buttonRow: {
     display: "flex",
+    gap: 10,
     justifyContent: "flex-end",
-    gap: 8,
-    padding: "12px 16px",
     marginTop: "auto",
+    paddingBottom: 16,
   },
   btn: {
+    width: "100%",
+    maxWidth: 120,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
