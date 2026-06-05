@@ -33,12 +33,18 @@ export default function PcRegisterPage() {
   const { employees, loading: employeesLoading } = useEmployees();
   const location = useLocation();
   const statePC = (location.state as { pc?: PC } | null)?.pc ?? null;
+  const LENDING_CLASSIFICATIONS = [
+    "2現場貸出",
+    "5貸出(社内開発)",
+    "6貸出(現場)",
+  ];
 
   const [form, setForm] = useState<Partial<PC>>(statePC ?? {});
   const [dialogError, setDialogError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<keyof PC, string>>
   >({});
+  const [saved, setSaved] = useState(false);
   const [showLoanDialog, setShowLoanDialog] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
@@ -115,12 +121,13 @@ export default function PcRegisterPage() {
   const handleSave = async () => {
     if (!validate()) return;
     if (isEditMode) {
-      await savePc(form, { editor: userEmail, editType: "PC編集" });
+      const ok = await savePc(form, { editor: userEmail, editType: "PC編集" });
+      if (ok) setSaved(true);
     } else {
       const ok = await registerPc(form, { editor: userEmail });
-      if (ok) handleQr();
+      if (ok) setSaved(true);
     }
-    handleLending();
+    // remove handleLending() and handleQr() from here entirely
   };
 
   const handleLending = () => setShowLoanDialog(true);
@@ -154,12 +161,16 @@ export default function PcRegisterPage() {
             form={form}
             dropdowns={dropdowns}
             employees={employees}
-            isLending={false}
+            isLending={
+              LENDING_CLASSIFICATIONS.includes(form.classification ?? "") &&
+              saved
+            }
+            isGenerateQr={saved}
             onChange={handleFormChange}
             onSave={handleSave}
             fieldErrors={fieldErrors}
             onLending={handleLending}
-            generateQr={handleQr}
+            onGenerateQr={handleQr}
             saving={saving}
           />
         </div>
