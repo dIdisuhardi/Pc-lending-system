@@ -269,8 +269,8 @@ export default function PcStatusForm({
         <button
           style={{
             ...styles.saveButton,
-            opacity: !saving ? 1 : 0.4,
-            cursor: !saving ? "pointer" : "not-allowed",
+            opacity: isGenerateQr && !saving ? 1 : 0.4,
+            cursor: isGenerateQr && !saving ? "pointer" : "not-allowed",
           }}
           onClick={onGenerateQr}
           disabled={!isGenerateQr || saving}

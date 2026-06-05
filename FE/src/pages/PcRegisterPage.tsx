@@ -44,7 +44,8 @@ export default function PcRegisterPage() {
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<keyof PC, string>>
   >({});
-  const [saved, setSaved] = useState(false);
+  const [activateLending, setActivateLending] = useState(false);
+  const [activateQr, setActivateQr] = useState(isEditMode);
   const [showLoanDialog, setShowLoanDialog] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
@@ -122,12 +123,14 @@ export default function PcRegisterPage() {
     if (!validate()) return;
     if (isEditMode) {
       const ok = await savePc(form, { editor: userEmail, editType: "PC編集" });
-      if (ok) setSaved(true);
+      if (ok) setActivateQr(true);
     } else {
       const ok = await registerPc(form, { editor: userEmail });
-      if (ok) setSaved(true);
+      if (ok) {
+        setActivateQr(true);
+        setActivateLending(true);
+      }
     }
-    // remove handleLending() and handleQr() from here entirely
   };
 
   const handleLending = () => setShowLoanDialog(true);
@@ -163,9 +166,9 @@ export default function PcRegisterPage() {
             employees={employees}
             isLending={
               LENDING_CLASSIFICATIONS.includes(form.classification ?? "") &&
-              saved
+              activateLending
             }
-            isGenerateQr={saved}
+            isGenerateQr={activateQr}
             onChange={handleFormChange}
             onSave={handleSave}
             fieldErrors={fieldErrors}
