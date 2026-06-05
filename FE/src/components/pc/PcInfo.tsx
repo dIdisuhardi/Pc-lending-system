@@ -21,12 +21,23 @@ const SECTIONS: Section[] = [
   {
     title: "基本情報",
     fields: [
-      { label: "番号", key: "PCNo", placeholder: "例: PC-001", required: true, readOnlyInEdit: true },
-      { label: "PC名", key: "PCName", placeholder: "例: TOMATO101" },
-      { label: "製造社", key: "manufacture" },
-      { label: "モデル名", key: "modelName" },
-      { label: "CPU", key: "CPU" },
-      { label: "RAM", key: "RAM", type: "number" },
+      {
+        label: "番号",
+        key: "PCNo",
+        placeholder: "例: PC-001",
+        required: true,
+        readOnlyInEdit: true,
+      },
+      {
+        label: "PC名",
+        key: "PCName",
+        placeholder: "例: TOMATO101",
+        required: true,
+      },
+      { label: "製造社", key: "manufacture", required: true },
+      { label: "モデル名", key: "modelName", required: true },
+      { label: "CPU", key: "CPU", required: true },
+      { label: "RAM", key: "RAM", type: "number", required: true },
       { label: "以前使用者", key: "prevUser", alwaysReadOnly: true },
     ],
   },
@@ -66,7 +77,7 @@ type EditProps = {
 
 type PcInfoReadOnlyProps = ViewProps | EditProps;
 
-export default function PcInfoReadOnly({
+export default function PcInfoRead({
   pc,
   form,
   onChange,
@@ -102,7 +113,8 @@ export default function PcInfoReadOnly({
                 rawValue === undefined || rawValue === null
                   ? ""
                   : String(rawValue);
-              const isReadOnly = !isEditable || alwaysReadOnly || (readOnlyInEdit && isEditMode);;
+              const isReadOnly =
+                !isEditable || alwaysReadOnly || (readOnlyInEdit && isEditMode);
 
               return (
                 <div key={key} style={styles.field}>

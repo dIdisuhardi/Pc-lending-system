@@ -71,7 +71,6 @@ export default function HistoryPage() {
           ) : (
             history.map((entry, i) => (
               <div key={i} style={styles.historyCard}>
-                {/* Top: edit type badge + datetime */}
                 <div style={styles.cardRow}>
                   <span
                     style={{
@@ -85,14 +84,13 @@ export default function HistoryPage() {
                     {entry.date} {entry.time}
                   </span>
                 </div>
-                {/* PC info */}
                 <div style={styles.cardMeta}>
                   <CardField
                     label="番号"
                     value={
                       <button
                         style={styles.linkBtn}
-                        onClick={() => navigate(`/pc-register/${entry.pcNo}`)}
+                        onClick={() => navigate(`/pc/${entry.pcNo}`)}
                       >
                         {entry.pcNo}
                       </button>
@@ -137,7 +135,7 @@ export default function HistoryPage() {
                     <td style={styles.td}>
                       <button
                         style={styles.linkBtn}
-                        onClick={() => navigate(`/pc-register/${entry.pcNo}`)}
+                        onClick={() => navigate(`/pc/${entry.pcNo}`)}
                       >
                         {entry.pcNo}
                       </button>

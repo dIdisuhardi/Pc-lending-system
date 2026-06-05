@@ -10,6 +10,7 @@ type PcStatusFormProps = {
   onChange: (form: Partial<PC>) => void;
   onSave: () => void;
   onLending: () => void;
+  generateQr: () => void;
   saving?: boolean;
   renderButtons?: () => React.ReactNode;
   fieldErrors?: Partial<Record<keyof PC, string>>;
@@ -23,8 +24,8 @@ export default function PcStatusForm({
   onChange,
   onSave,
   onLending,
+  generateQr,
   saving = false,
-  renderButtons,
   fieldErrors,
 }: PcStatusFormProps) {
   const [employeeSearch, setEmployeeSearch] = useState("");
@@ -88,7 +89,9 @@ export default function PcStatusForm({
             ...(fieldErrors?.classification ? { borderColor: "#e53935" } : {}),
           }}
           value={form.classification ?? ""}
-          onChange={(e) => onChange({ ...form, classification: e.target.value })}
+          onChange={(e) =>
+            onChange({ ...form, classification: e.target.value })
+          }
         >
           <option value="">選択してください</option>
           {(dropdowns?.classification ?? []).map((v) => (
@@ -236,41 +239,46 @@ export default function PcStatusForm({
         />
       </div>
 
-      {renderButtons ? (
-        renderButtons()
-      ) : (
-        <div style={styles.buttonRow}>
-          <button
-            style={{ ...styles.saveButton, opacity: saving ? 0.4 : 1 }}
-            onClick={onSave}
-            disabled={saving}
-          >
-            ✓<span style={{ marginLeft: 6 }} />
-            {saving ? "保存中..." : "保存"}
-          </button>
+      <div style={styles.buttonRow}>
+        <button
+          style={{ ...styles.saveButton, opacity: saving ? 0.4 : 1 }}
+          onClick={onSave}
+          disabled={saving}
+        >
+          ✓<span style={{ marginLeft: 6 }} />
+          {saving ? "保存中..." : "保存"}
+        </button>
 
-          <button
-            style={{
-              ...styles.lendingButton,
-              opacity: isLending ? 1 : 0.4,
-              cursor: isLending ? "pointer" : "not-allowed",
-            }}
-            onClick={onLending}
-            disabled={!isLending || saving}
-          >
-            <svg
-              viewBox="0 0 384 512"
-              height="16"
-              width="12"
-              fill="currentColor"
-            >
-              <path d="M64 48l112 0 0 88c0 39.8 32.2 72 72 72l88 0 0 240c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16L48 64c0-8.8 7.2-16 16-16zM224 67.9l92.1 92.1-68.1 0c-13.3 0-24-10.7-24-24l0-68.1zM64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-261.5c0-17-6.7-33.3-18.7-45.3L242.7 18.7C230.7 6.7 214.5 0 197.5 0L64 0zm56 256c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0zm0 96c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0z" />
-            </svg>
-            <span style={{ marginLeft: 6 }} />
-            貸出処理
-          </button>
-        </div>
-      )}
+        <button
+          style={{
+            ...styles.saveButton,
+            opacity: isLending ? 1 : 0.4,
+            cursor: isLending ? "pointer" : "not-allowed",
+          }}
+          onClick={onLending}
+          disabled={!isLending || saving}
+        >
+          <svg viewBox="0 0 384 512" height="16" width="12" fill="currentColor">
+            <path d="M64 48l112 0 0 88c0 39.8 32.2 72 72 72l88 0 0 240c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16L48 64c0-8.8 7.2-16 16-16zM224 67.9l92.1 92.1-68.1 0c-13.3 0-24-10.7-24-24l0-68.1zM64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-261.5c0-17-6.7-33.3-18.7-45.3L242.7 18.7C230.7 6.7 214.5 0 197.5 0L64 0zm56 256c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0zm0 96c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0z" />
+          </svg>
+          <span style={{ marginLeft: 6 }} />
+          貸出処理
+        </button>
+        <button
+          style={{
+            ...styles.saveButton,
+            opacity: !saving ? 1 : 0.4,
+            cursor: !saving ? "pointer" : "not-allowed",
+          }}
+          onClick={generateQr}
+          disabled={!generateQr || saving}
+        >
+          <svg viewBox="0 0 384 512" height="14" width="11" fill="currentColor">
+            <path d="M64 160l64 0 0-64-64 0 0 64zM0 80C0 53.5 21.5 32 48 32l96 0c26.5 0 48 21.5 48 48l0 96c0 26.5-21.5 48-48 48l-96 0c-26.5 0-48-21.5-48-48L0 80zM64 416l64 0 0-64-64 0 0 64zM0 336c0-26.5 21.5-48 48-48l96 0c26.5 0 48 21.5 48 48l0 96c0 26.5-21.5 48-48 48l-96 0c-26.5 0-48-21.5-48-48l0-96zM320 96l0 64 64 0 0-64-64 0zM304 32l96 0c26.5 0 48 21.5 48 48l0 96c0 26.5-21.5 48-48 48l-96 0c-26.5 0-48-21.5-48-48l0-96c0-26.5 21.5-48 48-48zM288 352a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm0 64c17.7 0 32 14.3 32 32s-14.3 32-32 32-32-14.3-32-32 14.3-32 32-32zm96 32c0-17.7 14.3-32 32-32s32 14.3 32 32-14.3 32-32 32-32-14.3-32-32zm32-96a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm-32 32a32 32 0 1 1 -64 0 32 32 0 1 1 64 0z" />
+          </svg>
+          <span style={{ marginLeft: 5 }}>QR生成</span>
+        </button>
+      </div>
     </div>
   );
 }
@@ -371,7 +379,7 @@ const styles: Record<string, React.CSSProperties> = {
   buttonRow: {
     display: "flex",
     gap: 10,
-    marginTop: 8,
+    marginTop: "auto",
     justifyContent: "flex-end",
   },
   saveButton: {
@@ -385,21 +393,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 16,
     cursor: "pointer",
     fontWeight: 500,
-  },
-  lendingButton: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    maxWidth: 120,
-    padding: "10px 0",
-    background: "#FFB74D",
-    color: "#000",
-    border: "none",
-    borderRadius: 4,
-    fontSize: 16,
-    fontWeight: 500,
-    cursor: "pointer",
   },
   required: {
     color: "#e53935",

@@ -161,7 +161,6 @@ export default function QrScanPage() {
                       <span style={styles.cornerTR} />
                       <span style={styles.cornerBL} />
                       <span style={styles.cornerBR} />
-                      {/* 中央十字 */}
                       <div style={styles.crossH} />
                       <div style={styles.crossV} />
                     </div>

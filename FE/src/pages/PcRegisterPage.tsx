@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import ErrorDialog from "../components/common/ErrorDialog";
 import LoadingSpinner from "../components/common/LoadingSpinner";
-import PcInfoReadOnly from "../components/pc/PcInfoReadOnly";
+import PcInfo from "../components/pc/PcInfo";
 import PcStatusForm from "../components/pc/PcStatusForm";
 import QrDialog from "./QrPrintPage";
 import TopBar from "../components/common/TopBar";
@@ -12,6 +13,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useDropdowns } from "../hooks/useDropdowns";
 import { useEmployees } from "../hooks/useEmployees";
 import { usePcData } from "../hooks/usePcData";
+import LoanDialog from "./LoanFormPage";
 
 export default function PcRegisterPage() {
   const { no } = useParams<{ no: string }>();
@@ -29,17 +31,20 @@ export default function PcRegisterPage() {
   } = usePcData();
   const { dropdowns, loading: dropdownsLoading } = useDropdowns();
   const { employees, loading: employeesLoading } = useEmployees();
+  const location = useLocation();
+  const statePC = (location.state as { pc?: PC } | null)?.pc ?? null;
 
-  const [form, setForm] = useState<Partial<PC>>({});
+  const [form, setForm] = useState<Partial<PC>>(statePC ?? {});
   const [dialogError, setDialogError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<keyof PC, string>>
   >({});
-  const [saved, setSaved] = useState(isEditMode);
+  const [showLoanDialog, setShowLoanDialog] = useState(false);
   const [showQr, setShowQr] = useState(false);
 
   useEffect(() => {
     if (!isEditMode) return;
+    if (statePC) return;
     fetchPc(no!).then((data) => {
       if (data) setForm(data);
       else setDialogError(`番号「${no}」のPCが見つかりません。`);
@@ -48,37 +53,38 @@ export default function PcRegisterPage() {
   }, [no]);
 
   const validateField = (key: keyof PC, value: string) => {
-    const strValue = String(value ?? "");
-    switch (key) {
-      case "PCNo":
-        return strValue.trim() ? "" : "番号は必須です";
-      case "status":
-        return strValue.trim() ? "" : "状況は必須です";
-      case "classification":
-        return strValue.trim() ? "" : "分類は必須です";
-      default:
-        return "";
-    }
+    const REQUIRED_FIELDS: Partial<Record<keyof PC, string>> = {
+      PCNo: "番号は必須です",
+      PCName: "PC名は必須です",
+      manufacture: "製造社は必須です",
+      modelName: "モデル名は必須です",
+      CPU: "CPUは必須です",
+      RAM: "RAMは必須です",
+      status: "状況は必須です",
+      classification: "分類は必須です",
+    };
+    return REQUIRED_FIELDS[key] && !String(value ?? "").trim()
+      ? REQUIRED_FIELDS[key]!
+      : "";
   };
 
   const validate = () => {
     const errors: Partial<Record<keyof PC, string>> = {};
-
-    errors.PCNo = validateField("PCNo", form.PCNo || "");
-    errors.status = validateField("status", form.status || "");
-    errors.classification = validateField(
+    const REQUIRED_KEYS: (keyof PC)[] = [
+      "PCNo",
+      "PCName",
+      "manufacture",
+      "modelName",
+      "CPU",
+      "RAM",
+      "status",
       "classification",
-      form.classification || "",
-    );
-
-    Object.keys(errors).forEach((key) => {
-      if (!errors[key as keyof PC]) {
-        delete errors[key as keyof PC];
-      }
+    ];
+    REQUIRED_KEYS.forEach((key) => {
+      const err = validateField(key, String(form[key] ?? ""));
+      if (err) errors[key] = err;
     });
-
     setFieldErrors(errors);
-
     return Object.keys(errors).length === 0;
   };
 
@@ -112,10 +118,12 @@ export default function PcRegisterPage() {
       await savePc(form, { editor: userEmail, editType: "PC編集" });
     } else {
       const ok = await registerPc(form, { editor: userEmail });
-      if (ok) setSaved(true);
+      if (ok) handleQr();
     }
+    handleLending();
   };
 
+  const handleLending = () => setShowLoanDialog(true);
   const handleQr = () => setShowQr(true);
 
   if (loading || dropdownsLoading || employeesLoading)
@@ -133,7 +141,7 @@ export default function PcRegisterPage() {
 
       <div style={styles.body}>
         <div style={styles.container}>
-          <PcInfoReadOnly
+          <PcInfo
             form={form}
             onChange={handleFormChange}
             fieldErrors={fieldErrors}
@@ -150,48 +158,16 @@ export default function PcRegisterPage() {
             onChange={handleFormChange}
             onSave={handleSave}
             fieldErrors={fieldErrors}
-            onLending={() => {}}
+            onLending={handleLending}
+            generateQr={handleQr}
             saving={saving}
-            renderButtons={() => (
-              <div style={styles.buttonRow}>
-                <button
-                  style={{
-                    ...styles.btn,
-                    background: "#FF6F20",
-                    opacity: saving ? 0.5 : 1,
-                  }}
-                  onClick={handleSave}
-                  disabled={saving}
-                >
-                  ✓ {saving ? "保存中..." : "保存"}
-                </button>
-                <button
-                  style={{
-                    ...styles.btn,
-                    background: "#FFB74D80",
-                    color: "#000",
-                    opacity: saved ? 1 : 0.4,
-                    cursor: saved ? "pointer" : "not-allowed",
-                  }}
-                  onClick={handleQr}
-                  disabled={!saved}
-                  title={saved ? "" : "先に保存してください"}
-                >
-                  <svg
-                    viewBox="0 0 384 512"
-                    height="14"
-                    width="11"
-                    fill="currentColor"
-                  >
-                    <path d="M64 160l64 0 0-64-64 0 0 64zM0 80C0 53.5 21.5 32 48 32l96 0c26.5 0 48 21.5 48 48l0 96c0 26.5-21.5 48-48 48l-96 0c-26.5 0-48-21.5-48-48L0 80zM64 416l64 0 0-64-64 0 0 64zM0 336c0-26.5 21.5-48 48-48l96 0c26.5 0 48 21.5 48 48l0 96c0 26.5-21.5 48-48 48l-96 0c-26.5 0-48-21.5-48-48l0-96zM320 96l0 64 64 0 0-64-64 0zM304 32l96 0c26.5 0 48 21.5 48 48l0 96c0 26.5-21.5 48-48 48l-96 0c-26.5 0-48-21.5-48-48l0-96c0-26.5 21.5-48 48-48zM288 352a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm0 64c17.7 0 32 14.3 32 32s-14.3 32-32 32-32-14.3-32-32 14.3-32 32-32zm96 32c0-17.7 14.3-32 32-32s32 14.3 32 32-14.3 32-32 32-32-14.3-32-32zm32-96a32 32 0 1 1 0-64 32 32 0 1 1 0 64zm-32 32a32 32 0 1 1 -64 0 32 32 0 1 1 64 0z" />
-                  </svg>
-                  <span style={{ marginLeft: 5 }}>QR生成</span>
-                </button>
-              </div>
-            )}
           />
         </div>
       </div>
+
+      {showLoanDialog && (
+        <LoanDialog form={form} onClose={() => setShowLoanDialog(false)} />
+      )}
 
       {showQr && (
         <QrDialog
@@ -246,26 +222,5 @@ const styles: Record<string, React.CSSProperties> = {
     maxWidth: 720,
     width: "100%",
     margin: "0 auto",
-  },
-  buttonRow: {
-    display: "flex",
-    gap: 10,
-    justifyContent: "flex-end",
-    marginTop: "auto",
-    paddingBottom: 16,
-  },
-  btn: {
-    width: "100%",
-    maxWidth: 120,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "9px 16px",
-    color: "#fff",
-    border: "none",
-    borderRadius: 6,
-    fontSize: 14,
-    fontWeight: 500,
-    cursor: "pointer",
   },
 };

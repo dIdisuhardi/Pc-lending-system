@@ -4,7 +4,6 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import HistoryPage from "./pages/HistoryPage";
-import PcInfoPage from "./pages/PcInfoPage";
 import PcListPage from "./pages/PcListPage";
 import PcRegisterPage from "./pages/PcRegisterPage";
 import QrScanPage from "./pages/QrScanPage";
@@ -23,7 +22,7 @@ function AppRoutes() {
         path="/pc/:no"
         element={
           <ProtectedRoute>
-            <PcInfoPage />
+            <PcRegisterPage />
           </ProtectedRoute>
         }
       />
@@ -37,14 +36,6 @@ function AppRoutes() {
       />
       <Route
         path="/pc-register"
-        element={
-          <ProtectedRoute>
-            <PcRegisterPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/pc-register/:no"
         element={
           <ProtectedRoute>
             <PcRegisterPage />

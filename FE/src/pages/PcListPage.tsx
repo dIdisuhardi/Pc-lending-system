@@ -83,9 +83,8 @@ export default function PcListPage() {
               <div
                 key={pc.PCNo}
                 style={styles.pcCard}
-                onClick={() => navigate(`/pc-register/${pc.PCNo}`)}
+                onClick={() => navigate(`/pc/${pc.PCNo}`)}
               >
-                {/* Top row: PC名 + 状況 badge */}
                 <div style={styles.cardRow}>
                   <span style={styles.cardPcName}>{pc.PCName}</span>
                   <span
@@ -100,7 +99,6 @@ export default function PcListPage() {
                     {pc.status}
                   </span>
                 </div>
-                {/* Detail rows */}
                 <div style={styles.cardMeta}>
                   <CardField label="番号" value={pc.PCNo} />
                   <CardField label="分類" value={pc.classification} />
@@ -140,7 +138,7 @@ export default function PcListPage() {
                       background: hoveredRow === pc.PCNo ? "#FFF3E8" : "#fff",
                       cursor: "pointer",
                     }}
-                    onClick={() => navigate(`/pc-register/${pc.PCNo}`)}
+                    onClick={() => navigate(`/pc/${pc.PCNo}`)}
                     onMouseEnter={() => setHoveredRow(pc.PCNo)}
                     onMouseLeave={() => setHoveredRow(null)}
                   >
