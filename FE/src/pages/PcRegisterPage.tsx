@@ -123,10 +123,14 @@ export default function PcRegisterPage() {
     if (!validate()) return;
     if (isEditMode) {
       const ok = await savePc(form, { editor: userEmail, editType: "PC編集" });
-      if (ok) setActivateQr(true);
+      if (ok && form.user) setActivateLending(true);
     } else {
       const ok = await registerPc(form, { editor: userEmail });
       if (ok) {
+        navigate(`/pc/${form.PCNo}`, {
+          state: { pc: form },
+          replace: true,
+        });
         setActivateQr(true);
         setActivateLending(true);
       }
