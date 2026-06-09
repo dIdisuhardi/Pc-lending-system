@@ -93,14 +93,14 @@ export default function LoanDocument({ form }: LoanDocumentProps) {
               ? `${new Date(form.lendingDate).getFullYear()}年${
                   new Date(form.lendingDate).getMonth() + 1
                 }月${new Date(form.lendingDate).getDate()}日`
-              : ""}
+              : `${new Date().getFullYear()}年${new Date().getMonth() + 1}月${new Date().getDate()}日`}
           </Text>
         </View>
 
         <Field label="品名（例： TOMATO101）:" value={form.PCName} />
         <Field
           label="以前使用した品名（例： TOMATO100）: "
-          value={form.prevUser ?? ""}
+          value={form.prevUser ?? "ー"}
         />
         <Field label="使用場所（例: 自宅/本社/現場）:" value={form.place} />
 
