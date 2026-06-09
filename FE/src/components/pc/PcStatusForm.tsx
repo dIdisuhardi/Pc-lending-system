@@ -140,10 +140,16 @@ export default function PcStatusForm({
       </div>
 
       <div style={styles.field}>
-        <label style={styles.label}>現在使用者</label>
+        <label style={styles.label}>
+          現在使用者
+          {form.status === "1使用中" && <span style={styles.required}> *</span>}
+        </label>
         <div style={styles.employeeWrap}>
           <input
-            style={styles.searchInput}
+            style={{
+              ...styles.searchInput,
+              ...(fieldErrors?.user ? { borderColor: "#e53935"} : {}),
+            }}
             type="text"
             placeholder="名前または番号で検索..."
             value={employeeSearch || form.user || ""}
@@ -176,6 +182,9 @@ export default function PcStatusForm({
               </ul>
             )}
         </div>
+        {fieldErrors?.user && (
+          <span style={styles.fieldError}>{fieldErrors.user}</span>
+        )}
       </div>
 
       <div style={styles.field}>

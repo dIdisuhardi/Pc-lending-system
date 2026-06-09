@@ -70,6 +70,10 @@ export default function PcRegisterPage() {
       status: "状況は必須です",
       classification: "分類は必須です",
     };
+    if (key === "user" && form.status === "1使用中" && !value.trim()) {
+      return "状況が「1使用中」の場合、現在使用者は必須です";
+    }
+
     return REQUIRED_FIELDS[key] && !String(value ?? "").trim()
       ? REQUIRED_FIELDS[key]!
       : "";
@@ -91,6 +95,9 @@ export default function PcRegisterPage() {
       const err = validateField(key, String(form[key] ?? ""));
       if (err) errors[key] = err;
     });
+    const userErr = validateField("user", String(form.user ?? ""));
+    if (userErr) errors.user = userErr;
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -115,6 +122,24 @@ export default function PcRegisterPage() {
         delete newErrors[key];
       }
     });
+
+    if ("status" in updated) {
+      const userErr = validateField("user", String(newForm.user ?? ""));
+      if (userErr) {
+        newErrors.user = userErr;
+      } else {
+        delete newErrors.user;
+      }
+    }
+
+    if ("user" in updated) {
+      const userErr = validateField("user", String(newForm.user ?? ""));
+      if (userErr) {
+        newErrors.user = userErr;
+      } else {
+        delete newErrors.user;
+      }
+    }
 
     setFieldErrors(newErrors);
   };
